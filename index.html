@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Rastreador Financiero Personal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Work+Sans:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary: #1a3a52;
+            --secondary: #2c5f7f;
+            --accent: #ff6b35;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --border: #dfe6e9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--text);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        header {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .card-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .card-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-family: 'DM Serif Display', serif;
+        }
+        
+        .card-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .import-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .import-area:hover {
+            border-color: var(--accent);
+            background: rgba(255, 107, 53, 0.05);
+        }
+        
+        .import-area.dragover {
+            border-color: var(--accent);
+            background: rgba(255, 107, 53, 0.1);
+        }
+        
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+        
+        button:hover {
+            background: #ff5722;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .transactions-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+        
+        .transaction-item:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-desc {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .transaction-meta {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+        
+        .forecast-chart {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 8px;
+        }
+        
+        .forecast-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .forecast-item:last-child {
+            border-bottom: none;
+        }
+        
+        .savings-recommendations {
+            margin-top: 1rem;
+        }
+        
+        .recommendation-item {
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--success);
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .recommendation-savings {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-light);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        select {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.875rem;
+        }
+        
+        .chart-container {
+            margin: 1.5rem 0;
+            height: 300px;
+            position: relative;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            gap: 0.5rem;
+        }
+        
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), #ff8c61);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+            min-height: 20px;
+        }
+        
+        .bar:hover {
+            opacity: 0.8;
+            transform: translateY(-4px);
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+
+    <div class="container">
+        <header>
+            <h1>💰 Mi Rastreador Financiero</h1>
+            <p class="subtitle">Gestiona tus finanzas desde Bancolombia, Nubank, Trii y DolarApp</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-title">Balance Total</div>
+                <div class="card-value" id="totalBalance">$0</div>
+                <div class="card-change">
+                    <span id="balanceChange">--</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Ingresos (Mes)</div>
+                <div class="card-value" id="monthlyIncome" style="color: var(--success);">$0</div>
+                <div class="card-change">
+                    <span id="incomeChange">--</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Gastos (Mes)</div>
+                <div class="card-value" id="monthlyExpenses" style="color: var(--danger);">$0</div>
+                <div class="card-change">
+                    <span id="expensesChange">--</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Ahorro Potencial</div>
+                <div class="card-value" id="savingsPotential" style="color: var(--accent);">$0</div>
+                <div class="card-change">
+                    <span id="savingsChange">Basado en tus hábitos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">Transacciones</div>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('import')">Importar</button>
+                    <button class="tab" onclick="switchTab('transactions')">Ver Transacciones</button>
+                    <button class="tab" onclick="switchTab('categories')">Categorías</button>
+                </div>
+
+                <div id="import-tab" class="tab-content active">
+                    <div class="import-area" id="dropZone">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                        <p style="margin-bottom: 1rem; font-weight: 500;">Arrastra tus archivos CSV/Excel/PDF aquí</p>
+                        <p style="font-size: 0.875rem; color: var(--text-light); margin-bottom: 1rem;">
+                            Exporta tus transacciones desde Bancolombia, Nubank, Trii o DolarApp
+                        </p>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="password" id="pdfPassword" placeholder="Contraseña del PDF (tu cédula)" 
+                                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; width: 100%; max-width: 300px; font-family: 'Work Sans', sans-serif;">
+                        </div>
+                        <button onclick="document.getElementById('fileInput').click()">
+                            Seleccionar Archivos
+                        </button>
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.pdf" multiple onchange="handleFiles(this.files)">
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <strong style="color: var(--primary);">💡 Cómo importar:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-light); line-height: 1.8;">
+                            <li><strong>CSV/Excel:</strong> Debe tener fecha, descripción, monto</li>
+                            <li><strong>PDF protegido:</strong> Ingresa tu cédula como contraseña antes de importar</li>
+                            <li>Puedes importar múltiples archivos a la vez</li>
+                            <li>Los datos se guardan solo en tu navegador (100% privado)</li>
+                            <li><strong>Bancos soportados:</strong> Bancolombia, Nubank, Trii, DolarApp</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="transactions-tab" class="tab-content">
+                    <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
+                        <select id="bankFilter" onchange="filterTransactions()">
+                            <option value="all">Todos los bancos</option>
+                            <option value="Bancolombia">Bancolombia</option>
+                            <option value="Nubank">Nubank</option>
+                            <option value="Trii">Trii</option>
+                            <option value="DolarApp">DolarApp</option>
+                        </select>
+                        <select id="categoryFilter" onchange="filterTransactions()">
+                            <option value="all">Todas las categorías</option>
+                        </select>
+                        <select id="periodFilter" onchange="filterTransactions()">
+                            <option value="all">Todo el período</option>
+                            <option value="thisMonth">Este mes</option>
+                            <option value="lastMonth">Mes pasado</option>
+                            <option value="last3Months">Últimos 3 meses</option>
+                        </select>
+                    </div>
+                    <div class="transactions-list" id="transactionsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>No hay transacciones todavía</p>
+                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">Importa tus archivos para comenzar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="categories-tab" class="tab-content">
+                    <div class="chart-container">
+                        <div id="categoryChart" class="bar-chart"></div>
+                    </div>
+                    <div id="categoryBreakdown"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section" style="margin-bottom: 2rem;">
+                    <div class="section-title">Pronóstico (Próximos 3 meses)</div>
+                    <div class="forecast-chart" id="forecastChart">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📈</div>
+                            <p>Pronóstico disponible después de importar datos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Recomendaciones de Ahorro</div>
+                    <div class="savings-recommendations" id="savingsRecommendations">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💡</div>
+                            <p>Recomendaciones disponibles después de analizar tus gastos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Storage using localStorage
+        let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        let categories = {
+            'Alimentación': ['supermercado', 'restaurante', 'comida', 'mercado', 'exito', 'carulla', 'rappi'],
+            'Transporte': ['uber', 'cabify', 'gasolina', 'combustible', 'peaje', 'taxi', 'transmilenio'],
+            'Servicios': ['internet', 'celular', 'luz', 'agua', 'gas', 'netflix', 'spotify'],
+            'Entretenimiento': ['cine', 'teatro', 'bar', 'discoteca', 'concierto'],
+            'Salud': ['farmacia', 'doctor', 'medicamento', 'hospital', 'laboratorio'],
+            'Educación': ['libro', 'curso', 'universidad', 'colegio'],
+            'Compras': ['amazon', 'mercadolibre', 'tienda', 'ropa', 'zapatos'],
+            'Vivienda': ['arriendo', 'alquiler', 'administración'],
+            'Inversión': ['ahorro', 'inversión', 'crypto'],
+            'Otros': []
+        };
+
+        // Initialize
+        updateDashboard();
+        populateCategoryFilter();
+
+        // File handling
+        const dropZone = document.getElementById('dropZone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(files) {
+            const password = document.getElementById('pdfPassword').value;
+            
+            Array.from(files).forEach(file => {
+                const fileName = file.name.toLowerCase();
+                
+                if (fileName.endsWith('.pdf')) {
+                    handlePDF(file, password);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        parseCSV(e.target.result, file.name);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        async function handlePDF(file, password) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Load PDF with password if provided
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    password: password || undefined
+                });
+
+                const pdf = await loadingTask.promise;
+                
+                let allText = '';
+                
+                // Extract text from all pages
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    allText += pageText + '\n';
+                }
+
+                // Parse the extracted text
+                parsePDFText(allText, file.name);
+                
+            } catch (error) {
+                if (error.name === 'PasswordException') {
+                    alert('❌ Contraseña incorrecta. Por favor ingresa tu cédula en el campo de contraseña e intenta de nuevo.');
+                } else {
+                    console.error('Error processing PDF:', error);
+                    alert('❌ Error al procesar el PDF: ' + error.message);
+                }
+            }
+        }
+
+        function parsePDFText(text, filename) {
+            const bankName = detectBank(filename);
+            let transactions = [];
+
+            // Different parsing strategies based on bank
+            if (bankName === 'Bancolombia') {
+                transactions = parseBancolombiaPDF(text);
+            } else if (bankName === 'Nubank') {
+                transactions = parseNubankPDF(text);
+            } else if (bankName === 'DolarApp') {
+                transactions = parseDolarAppPDF(text);
+            } else {
+                // Generic parsing
+                transactions = parseGenericPDF(text);
+            }
+
+            transactions.forEach(t => {
+                t.bank = bankName;
+                t.id = Date.now() + Math.random();
+                t.category = categorizeTransaction(t.description);
+            });
+
+            window.transactions.push(...transactions);
+            saveTransactions();
+            updateDashboard();
+            filterTransactions();
+            
+            alert(`✅ ${transactions.length} transacciones importadas de ${bankName}`);
+        }
+
+        function parseBancolombiaPDF(text) {
+            const transactions = [];
+            // Bancolombia format: Date Description Amount
+            // Pattern: DD/MM/YYYY or DD-MM-YYYY followed by description and amount
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Look for date patterns
+                const dateMatch = line.match(/(\d{2}[-/]\d{2}[-/]\d{4})/);
+                if (dateMatch) {
+                    const date = dateMatch[1].replace(/\//g, '-');
+                    
+                    // Extract amount (looking for numbers with dots/commas)
+                    const amountMatch = line.match(/[-]?\$?\s*([\d,.]+)/g);
+                    if (amountMatch && amountMatch.length > 0) {
+                        const amountStr = amountMatch[amountMatch.length - 1];
+                        const amount = parseFloat(amountStr.replace(/[,$]/g, '').replace(/\./g, ''));
+                        
+                        // Extract description (everything between date and amount)
+                        let description = line.replace(dateMatch[0], '')
+                                             .replace(amountStr, '')
+                                             .trim();
+                        
+                        if (description && amount !== 0) {
+                            transactions.push({
+                                date: convertDate(date),
+                                description: description.substring(0, 100),
+                                amount: amount,
+                                currency: 'COP'
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return transactions;
+        }
+
+        function parseNubankPDF(text) {
+            const transactions = [];
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Nubank typically shows: DD MMM Description Amount
+                const dateMatch = line.match(/(\d{2})\s+(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)/i);
+                if (dateMatch) {
+                    const day = dateMatch[1];
+                    const month = convertMonthToNumber(dateMatch[2]);
+                    const year = new Date().getFullYear();
+                    const date = `${year}-${month}-${day}`;
+                    
+                    const amountMatch = line.match(/\$\s*([\d,.]+)/);
+                    if (amountMatch) {
+                        const amount = parseFloat(amountMatch[1].replace(/[,.]/g, ''));
+                        const description = line.replace(dateMatch[0], '')
+                                              .replace(amountMatch[0], '')
+                                              .trim();
+                        
+                        if (description) {
+                            transactions.push({
+                                date: date,
+                                description: description.substring(0, 100),
+                                amount: -amount, // Nubank shows expenses as positive
+                                currency: 'COP'
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return transactions;
+        }
+
+        function parseDolarAppPDF(text) {
+            const transactions = [];
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                const dateMatch = line.match(/(\d{2}[-/]\d{2}[-/]\d{4})/);
+                if (dateMatch) {
+                    const date = dateMatch[1].replace(/\//g, '-');
+                    const amountMatch = line.match(/\$\s*([\d,.]+)\s*USD/);
+                    
+                    if (amountMatch) {
+                        const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                        const description = line.replace(dateMatch[0], '')
+                                              .replace(amountMatch[0], '')
+                                              .trim();
+                        
+                        if (description) {
+                            transactions.push({
+                                date: convertDate(date),
+                                description: description.substring(0, 100),
+                                amount: amount,
+                                currency: 'USD'
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return transactions;
+        }
+
+        function parseGenericPDF(text) {
+            const transactions = [];
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Generic date pattern
+                const dateMatch = line.match(/(\d{2}[-/]\d{2}[-/]\d{2,4})/);
+                if (dateMatch) {
+                    const date = dateMatch[1];
+                    
+                    // Look for amount patterns
+                    const amountMatch = line.match(/[-]?\$?\s*([\d,.]+)/);
+                    if (amountMatch) {
+                        const amount = parseFloat(amountMatch[1].replace(/[,$]/g, '').replace(/\./g, ''));
+                        const description = line.replace(dateMatch[0], '')
+                                              .replace(amountMatch[0], '')
+                                              .trim();
+                        
+                        if (description && Math.abs(amount) > 0) {
+                            transactions.push({
+                                date: convertDate(date),
+                                description: description.substring(0, 100),
+                                amount: amount,
+                                currency: 'COP'
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return transactions;
+        }
+
+        function convertDate(dateStr) {
+            // Convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD
+            const parts = dateStr.split(/[-/]/);
+            if (parts.length === 3) {
+                const day = parts[0].padStart(2, '0');
+                const month = parts[1].padStart(2, '0');
+                let year = parts[2];
+                
+                // Handle 2-digit years
+                if (year.length === 2) {
+                    year = '20' + year;
+                }
+                
+                return `${year}-${month}-${day}`;
+            }
+            return dateStr;
+        }
+
+        function convertMonthToNumber(monthName) {
+            const months = {
+                'ENE': '01', 'FEB': '02', 'MAR': '03', 'ABR': '04',
+                'MAY': '05', 'JUN': '06', 'JUL': '07', 'AGO': '08',
+                'SEP': '09', 'OCT': '10', 'NOV': '11', 'DIC': '12'
+            };
+            return months[monthName.toUpperCase()] || '01';
+        }
+
+        function parseCSV(text, filename) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length < 2) return;
+
+            const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+            const dateIdx = headers.findIndex(h => h.includes('fecha') || h.includes('date'));
+            const descIdx = headers.findIndex(h => h.includes('descripci') || h.includes('desc') || h.includes('concepto'));
+            const amountIdx = headers.findIndex(h => h.includes('monto') || h.includes('valor') || h.includes('amount'));
+            
+            const bankName = detectBank(filename);
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                
+                if (values.length < 3) continue;
+
+                const transaction = {
+                    id: Date.now() + Math.random(),
+                    date: values[dateIdx] || new Date().toISOString().split('T')[0],
+                    description: values[descIdx] || 'Sin descripción',
+                    amount: parseFloat(values[amountIdx]?.replace(/[^\d.-]/g, '') || 0),
+                    bank: bankName,
+                    category: categorizeTransaction(values[descIdx] || ''),
+                    currency: detectCurrency(filename, values[amountIdx])
+                };
+
+                transactions.push(transaction);
+            }
+
+            saveTransactions();
+            updateDashboard();
+            filterTransactions();
+            alert(`✅ ${lines.length - 1} transacciones importadas de ${bankName}`);
+        }
+
+        function detectBank(filename) {
+            const fn = filename.toLowerCase();
+            if (fn.includes('bancolombia')) return 'Bancolombia';
+            if (fn.includes('nubank') || fn.includes('nu')) return 'Nubank';
+            if (fn.includes('trii')) return 'Trii';
+            if (fn.includes('dolar')) return 'DolarApp';
+            return 'Otro';
+        }
+
+        function detectCurrency(filename, amountStr) {
+            if (filename.toLowerCase().includes('dolar') || amountStr?.includes('$') || amountStr?.includes('USD')) {
+                return 'USD';
+            }
+            return 'COP';
+        }
+
+        function categorizeTransaction(description) {
+            const desc = description.toLowerCase();
+            for (const [category, keywords] of Object.entries(categories)) {
+                if (keywords.some(kw => desc.includes(kw))) {
+                    return category;
+                }
+            }
+            return 'Otros';
+        }
+
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        function updateDashboard() {
+            const now = new Date();
+            const thisMonth = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+            });
+
+            const income = thisMonth.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+            const expenses = Math.abs(thisMonth.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
+            const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('totalBalance').textContent = formatCurrency(balance);
+            document.getElementById('monthlyIncome').textContent = formatCurrency(income);
+            document.getElementById('monthlyExpenses').textContent = formatCurrency(expenses);
+            
+            const savingsPotential = calculateSavingsPotential();
+            document.getElementById('savingsPotential').textContent = formatCurrency(savingsPotential);
+
+            updateForecast();
+            updateRecommendations();
+            updateCategoryChart();
+        }
+
+        function formatCurrency(amount, currency = 'COP') {
+            if (currency === 'USD') {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+            }
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(amount);
+        }
+
+        function calculateSavingsPotential() {
+            const now = new Date();
+            const lastMonths = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                const monthsDiff = (now.getFullYear() - tDate.getFullYear()) * 12 + (now.getMonth() - tDate.getMonth());
+                return monthsDiff >= 0 && monthsDiff < 3;
+            });
+
+            const categoryTotals = {};
+            lastMonths.filter(t => t.amount < 0).forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + Math.abs(t.amount);
+            });
+
+            // Identify categories with potential savings (top spending categories)
+            const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            const topCategory = sortedCategories[0];
+            
+            if (topCategory) {
+                // Suggest 10-15% reduction in top spending category
+                return topCategory[1] * 0.15 / 3; // Monthly average
+            }
+            
+            return 0;
+        }
+
+        function updateForecast() {
+            if (transactions.length < 5) return;
+
+            const forecastContainer = document.getElementById('forecastChart');
+            const monthlyAvgs = calculateMonthlyAverages();
+            
+            let html = '<div style="font-size: 0.875rem; color: var(--text-light); margin-bottom: 1rem;">Basado en tus últimos 3 meses de gastos</div>';
+            
+            const months = ['Mes 1', 'Mes 2', 'Mes 3'];
+            months.forEach((month, i) => {
+                const forecasted = monthlyAvgs.expenses * (1 + (Math.random() * 0.1 - 0.05)); // Add small variance
+                html += `
+                    <div class="forecast-item">
+                        <div>
+                            <div style="font-weight: 500;">${month}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);">Gastos estimados</div>
+                        </div>
+                        <div style="font-weight: 600; color: var(--danger);">${formatCurrency(forecasted)}</div>
+                    </div>
+                `;
+            });
+
+            forecastContainer.innerHTML = html;
+        }
+
+        function calculateMonthlyAverages() {
+            const now = new Date();
+            const last3Months = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                const monthsDiff = (now.getFullYear() - tDate.getFullYear()) * 12 + (now.getMonth() - tDate.getMonth());
+                return monthsDiff >= 0 && monthsDiff < 3;
+            });
+
+            const income = last3Months.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) / 3;
+            const expenses = Math.abs(last3Months.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)) / 3;
+
+            return { income, expenses };
+        }
+
+        function updateRecommendations() {
+            if (transactions.length < 5) return;
+
+            const container = document.getElementById('savingsRecommendations');
+            const categoryTotals = {};
+            
+            const now = new Date();
+            const thisMonth = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear() && t.amount < 0;
+            });
+
+            thisMonth.forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + Math.abs(t.amount);
+            });
+
+            const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            
+            let html = '';
+            
+            // Top 3 spending categories
+            sortedCategories.slice(0, 3).forEach(([category, total], i) => {
+                const savingsPercent = i === 0 ? 15 : i === 1 ? 10 : 8;
+                const potentialSavings = total * (savingsPercent / 100);
+                
+                html += `
+                    <div class="recommendation-item">
+                        <div class="recommendation-title">Reduce ${category} en ${savingsPercent}%</div>
+                        <div style="font-size: 0.875rem; color: var(--text-light); margin-bottom: 0.5rem;">
+                            Gastas ${formatCurrency(total)} mensual en esta categoría
+                        </div>
+                        <div class="recommendation-savings">Ahorro potencial: ${formatCurrency(potentialSavings)}</div>
+                    </div>
+                `;
+            });
+
+            // General recommendation
+            const totalExpenses = Object.values(categoryTotals).reduce((a, b) => a + b, 0);
+            html += `
+                <div class="recommendation-item">
+                    <div class="recommendation-title">Regla 50/30/20</div>
+                    <div style="font-size: 0.875rem; color: var(--text-light); margin-bottom: 0.5rem;">
+                        50% necesidades, 30% gustos, 20% ahorros/inversión
+                    </div>
+                    <div class="recommendation-savings">Meta de ahorro mensual: ${formatCurrency(totalExpenses * 0.2)}</div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function updateCategoryChart() {
+            if (transactions.length === 0) return;
+
+            const now = new Date();
+            const thisMonth = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear() && t.amount < 0;
+            });
+
+            const categoryTotals = {};
+            thisMonth.forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + Math.abs(t.amount);
+            });
+
+            const chartContainer = document.getElementById('categoryChart');
+            const breakdownContainer = document.getElementById('categoryBreakdown');
+            
+            const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            const maxValue = sortedCategories[0]?.[1] || 1;
+
+            let chartHTML = '';
+            let breakdownHTML = '<div style="margin-top: 1rem;">';
+
+            sortedCategories.forEach(([category, total]) => {
+                const percentage = (total / maxValue) * 100;
+                chartHTML += `
+                    <div class="bar" style="height: ${percentage}%;">
+                        <div class="bar-value">${formatCurrency(total)}</div>
+                        <div class="bar-label">${category}</div>
+                    </div>
+                `;
+
+                breakdownHTML += `
+                    <div class="forecast-item">
+                        <div>
+                            <span style="font-weight: 500;">${category}</span>
+                            <span style="font-size: 0.875rem; color: var(--text-light); margin-left: 0.5rem;">
+                                ${thisMonth.filter(t => t.category === category).length} transacciones
+                            </span>
+                        </div>
+                        <div style="font-weight: 600; color: var(--danger);">${formatCurrency(total)}</div>
+                    </div>
+                `;
+            });
+
+            breakdownHTML += '</div>';
+
+            chartContainer.innerHTML = chartHTML;
+            breakdownContainer.innerHTML = breakdownHTML;
+        }
+
+        function filterTransactions() {
+            const bank = document.getElementById('bankFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+            const period = document.getElementById('periodFilter').value;
+
+            let filtered = [...transactions];
+
+            if (bank !== 'all') {
+                filtered = filtered.filter(t => t.bank === bank);
+            }
+
+            if (category !== 'all') {
+                filtered = filtered.filter(t => t.category === category);
+            }
+
+            const now = new Date();
+            if (period === 'thisMonth') {
+                filtered = filtered.filter(t => {
+                    const tDate = new Date(t.date);
+                    return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+                });
+            } else if (period === 'lastMonth') {
+                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                filtered = filtered.filter(t => {
+                    const tDate = new Date(t.date);
+                    return tDate.getMonth() === lastMonth.getMonth() && tDate.getFullYear() === lastMonth.getFullYear();
+                });
+            } else if (period === 'last3Months') {
+                filtered = filtered.filter(t => {
+                    const tDate = new Date(t.date);
+                    const monthsDiff = (now.getFullYear() - tDate.getFullYear()) * 12 + (now.getMonth() - tDate.getMonth());
+                    return monthsDiff >= 0 && monthsDiff < 3;
+                });
+            }
+
+            displayTransactions(filtered);
+        }
+
+        function displayTransactions(transactionsToShow) {
+            const container = document.getElementById('transactionsList');
+            
+            if (transactionsToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>No se encontraron transacciones con estos filtros</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sorted = transactionsToShow.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            sorted.forEach(t => {
+                const categoryColor = t.amount > 0 ? 'var(--success)' : 'var(--accent)';
+                html += `
+                    <div class="transaction-item">
+                        <div class="transaction-details">
+                            <div class="transaction-desc">${t.description}</div>
+                            <div class="transaction-meta">
+                                ${new Date(t.date).toLocaleDateString('es-CO')} • ${t.bank}
+                                <span class="category-badge" style="background: ${categoryColor}20; color: ${categoryColor};">
+                                    ${t.category}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="transaction-amount" style="color: ${t.amount > 0 ? 'var(--success)' : 'var(--danger)'};">
+                            ${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount, t.currency)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('categoryFilter');
+            const uniqueCategories = [...new Set(transactions.map(t => t.category))];
+            
+            uniqueCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
